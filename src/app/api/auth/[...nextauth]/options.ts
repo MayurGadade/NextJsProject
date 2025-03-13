@@ -40,5 +40,32 @@ providers:[
             throw new Error(err)
         }
     }
-})]
+})],
+callbacks:{
+async session({ session,  token }) {
+    if (token) {
+      session.user._id = token.id?.toString()
+      session.user.isVerified = token.isVerified    
+      session.user.isAcceptingMessage = token.isAcceptingMessage      
+      session.user.username = token.username
+
+    }
+    return session
+  },
+  async jwt({ token, user }) {
+    if (user) {
+      token.id = user._id?.toString()
+      token.isVerified = user.isVerified
+      token.isAcceptingMessage = user.isAcceptingMessage
+      token.username = user.username
+    }
+    return token
+  },
+},
+pages: {
+    signIn: "/sign-in",
+  },
+  session: {
+    strategy: "jwt",
+  },
 }
