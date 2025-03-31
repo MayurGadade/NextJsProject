@@ -13,7 +13,7 @@ export async function POST(req: Request) {
 
         return Response.json({
             success: false,
-            message: "NOt Unauthorized"
+            message: "Not authorized"
         },
         { status: 401 }
         )

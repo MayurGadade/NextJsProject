@@ -13,7 +13,7 @@ export async function POST(request: Request) {
       username,
       isVerified: true,
     });
-
+    console.log("tihis is existingVerifiedUserByUsername",existingVerifiedUserByUsername);
     if (existingVerifiedUserByUsername) {
       return Response.json(
         {
@@ -25,6 +25,7 @@ export async function POST(request: Request) {
     }
 
     const existingUserByEmail = await UserModel.findOne({ email });
+    console.log("tihis is existingUserByEmail",existingUserByEmail);
     const verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
 
     if (existingUserByEmail) {
@@ -39,13 +40,13 @@ export async function POST(request: Request) {
       } else {
         const hashedPassword = await bcrypt.hash(password, 10);
         existingUserByEmail.password = hashedPassword;
-        existingUserByEmail.verifyCode = verifyCode;
+        existingUserByEmail.verifyCode = verifyCode;  
         existingUserByEmail.verifyCodeExpiry = new Date(Date.now() + 3600000);
         await existingUserByEmail.save();
 
       }
     } else {
-      const hashedPassword = await bcrypt.hash(password, 10);
+       const hashedPassword = await bcrypt.hash(password, 10);
       const expiryDate = new Date();
       expiryDate.setHours(expiryDate.getHours() + 1);
 

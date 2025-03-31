@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
-import { useDebounceValue } from "usehooks-ts";
+import { useDebounceValue, useDebounceCallback } from "usehooks-ts";
 import { useEffect, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -39,8 +39,9 @@ const Page = () => {
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const debounceUsername = useDebounceValue(username, 300);
-
+  const debouncedUsername = useDebounceCallback(setUsername, 500);
+  console.log("this is debounced username", debouncedUsername);
+  console.log("this is username", username);
   const router = useRouter();
 
   // toast("Scheduled: Catch up",{
@@ -59,14 +60,14 @@ const Page = () => {
 
   useEffect(() => {
     const checkUsernameUnique = async () => {
-      if (debounceUsername) {
+      if (username) {
         setIsCheckingUsername(true);
         setUsernameMessage("");
         try {
           const response = await axios.get(
-            `/api/check-username-unique?username=${debounceUsername}`
+            `/api/check-username-unique?username=${debouncedUsername}`
           );
-          console.log("this is username", response);
+          console.log("this is response from sign up page", response);
           setUsernameMessage(response.data.message);
         } catch (error) {
           const axiosError = error as AxiosError<ApiResponse>;
@@ -79,7 +80,7 @@ const Page = () => {
       }
     };
     checkUsernameUnique();
-  }, [debounceUsername]);
+  }, [debouncedUsername]);
 
   const onsubmit = async (data: z.infer<typeof signUpSchema>) => {
     setIsSubmitting(true);
@@ -94,7 +95,7 @@ const Page = () => {
     } catch (error) {
       console.error("error in sign up", error);
       const axiosError = error as AxiosError<ApiResponse>;
-      let errorMessage = axiosError.response?.data.message;
+      const errorMessage = axiosError.response?.data.message;
 
       toast.warning("Error!", {
         description: errorMessage,
@@ -104,7 +105,7 @@ const Page = () => {
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-800">
+    <div className="flex justify-center items-center min-h-screen bg-gray-900">
       <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-md">
         <div className="text-center">
           <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl mb-6">
@@ -124,14 +125,14 @@ const Page = () => {
                     {...field}
                     onChange={(e) => {
                       field.onChange(e);
-                      setUsername(e.target.value);
+                      debouncedUsername(e.target.value);
                     }}
                   />
                   {isCheckingUsername && <Loader2 className="animate-spin" />}
                   {!isCheckingUsername && usernameMessage && (
                     <p
                       className={`text-sm ${
-                        usernameMessage === "Username is unique"
+                        usernameMessage === "Username is available"
                           ? "text-green-500"
                           : "text-red-500"
                       }`}
@@ -150,7 +151,7 @@ const Page = () => {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <Input {...field} name="email" />
-                  <p className="text-muted text-gray-400 text-sm">
+                  <p className=" text-gray-400 text-sm">
                     We will send you a verification code
                   </p>
                   <FormMessage />
